@@ -6,7 +6,6 @@
 #include "GAFSubobjectState.h"
 #include "GAFSpriteWithAlpha.h"
 #include "GAFStencilMaskSprite.h"
-#include "GAFBlurredSprite.h"
 #include "GAFFilterData.h"
 
 #include "CCDirector.h"
@@ -533,7 +532,6 @@ void GAFAnimatedObject::processAnimation()
 		{
 			
 			GAFSubobjectState *state = (GAFSubobjectState*)arr->objectAtIndex(i);
-			//if (state.petPartName == nil || [state.petPartName isEmpty])
 			{
 				CCDictionary * subobjects = subObjects();
 				GAFSpriteWithAlpha *subObject =  NULL;
@@ -553,55 +551,45 @@ void GAFAnimatedObject::processAnimation()
 					{
 						blurFilter = (GAFBlurFilterData *) state->filters()->objectForKey(kGAFBlurFilterName);
 					}
+					CCPoint prevAP = subObject->getAnchorPoint();
+					CCSize  prevCS = subObject->getContentSize();
 					
-				
-				if (!blurFilter && dynamic_cast<GAFBlurredSprite*>(subObject))
-				{
-					CCLOGINFO("Converted filtered sprite with ID: %s to simple.", state->objectId.c_str());
-					// revert sprite back to simple one
-					GAFBlurredSprite *filteredSprite = (GAFBlurredSprite *)subObject;
-					// CHECK HERE
-					removeChild(filteredSprite, false);
-					subObject = filteredSprite->sourceSprite();
-					addChild(subObject);
-					subObjects()->setObject(filteredSprite->sourceSprite(), state->objectId);
-				}
-				else
 					if (blurFilter)
 					{
-						if (!dynamic_cast<GAFBlurredSprite*>(subObject))
+						subObject->setBlurRadius(CCSizeMake(blurFilter->blurX / 4, blurFilter->blurY / 4));
+					}
+				
+					CCSize newCS = subObject->getContentSize();
+					CCPoint newAP = CCPointMake( ((prevAP.x - 0.5) * prevCS.width) / newCS.width + 0.5,
+												((prevAP.y - 0.5) * prevCS.height) / newCS.height + 0.5);
+					subObject->setAnchorPoint(newAP);
+					
+					if (!state->maskObjectId.length())
+					{
+						if (!subObject->getParent())
 						{
-							CCLOGINFO("Converted simple sprite with ID: %s to filtered.", state->objectId.c_str());
-							// convert sprite to filtered one
-							GAFBlurredSprite *filteredSprite = new GAFBlurredSprite();
-							filteredSprite->initWithGAFSprite(subObject, blurFilter->blurSize());
-							filteredSprite->updateDynamicTexture();
-							
-							subObjects()->setObject(filteredSprite, state->objectId);
-							filteredSprite->release();
-							
-							removeChild(subObject, false);
-							subObject = filteredSprite;
-							addChild(filteredSprite);
-						}
-						else
-						{
-							// Check if filter parameters match
-							GAFBlurredSprite *filteredSprite = (GAFBlurredSprite *)subObject;
-							CCSize roundedBlurSize = CCSizeMake(ceilf(blurFilter->blurSize().width),
-																ceilf(blurFilter->blurSize().height));
-							
-							CCSize normalizedBlurSize = filteredSprite->normalizedBlurSizeFromNeededBlurSize(roundedBlurSize);
-							
-							if (filteredSprite->blurSize().width != normalizedBlurSize.width || filteredSprite->blurSize().height != normalizedBlurSize.height)
-							{
-								CCLOGINFO("Modifying filtered sprite ID: %s parameters.", state->objectId.c_str());
-								
-								filteredSprite->setBlurSize(roundedBlurSize);
-								filteredSprite->updateDynamicTexture();
-							}
+							addChild(subObject);
 						}
 					}
+					else
+					{
+						if (subObject->getParent())
+						{
+							removeChild(subObject, false);
+						}
+						CCDictionary * aMasks = masks();
+						
+						GAFStencilMaskSprite * mask = NULL;
+						if (aMasks)
+						{
+							mask = (GAFStencilMaskSprite *)aMasks->objectForKey(state->objectId);
+						}
+						if (mask)
+						{
+							mask->addMaskedObject(subObject);
+						}
+					}
+					
 					bool subobjectCaptured = false;
 					GAFAnimatedObjectControlFlags controlFlags = kGAFAnimatedObjectControl_None;
 					CCInteger * flagsNum = (CCInteger *)_capturedObjects->objectForKey(state->objectId);
@@ -626,11 +614,6 @@ void GAFAnimatedObject::processAnimation()
 						subObject->setVisible(state->isVisisble());
 						subObject->setColorTransform(state->colorMults(), state->colorOffsets());
 					}
-					
-					if (subobjectCaptured && _controlDelegate)
-					{
-						_controlDelegate->onFrameDisplayed(this, subObject);
-					}
 				}
 				else
 				{
@@ -652,6 +635,29 @@ void GAFAnimatedObject::processAnimation()
 						}
 					}
 				}
+			}
+		}
+	}
+	
+	if (_controlDelegate && arr)
+	{
+		int n = arr->count();
+		for (int i = 0; i < n; ++i)
+		{
+			
+			GAFSubobjectState *state = (GAFSubobjectState*)arr->objectAtIndex(i);
+			GAFSpriteWithAlpha *subObject = (GAFSpriteWithAlpha *) subObjects()->objectForKey(state->objectId);
+			if (subObject)
+			{
+				bool subobjectCaptured = NULL != _capturedObjects->objectForKey(state->objectId);
+				if (subobjectCaptured && _controlDelegate)
+				{
+					_controlDelegate->onFrameDisplayed(this, subObject);
+				}				
+			}
+			else
+			{
+				// Masks cannot be captured right now
 			}
 		}
 	}

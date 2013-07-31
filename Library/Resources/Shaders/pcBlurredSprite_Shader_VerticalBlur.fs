@@ -27,7 +27,8 @@ void main()
     
     // applying premultiplies alpha
     gl_FragColor = vec4(sum.x * sum.a, sum.y * sum.a, sum.z * sum.a, sum.a);
-
 }
+
+
 
 

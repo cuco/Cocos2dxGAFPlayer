@@ -1,11 +1,25 @@
 #include "GAFSpriteWithAlpha.h"
 #include "GAFShaderManager.h"
+#include "GAFTextureEffectsConverter.h"
+#include "CCRenderTexture.h"
 
 #include "shaders/CCGLProgram.h"
 #include "shaders/CCShaderCache.h"
 #include "shaders/ccShaders.h"
 
 static const char * kAlphaFragmentShaderFilename = "pcShader_PositionTextureAlpha_frag.fs";
+
+GAFSpriteWithAlpha::GAFSpriteWithAlpha()
+:
+_initialTexture(NULL)
+{
+}
+
+GAFSpriteWithAlpha::~GAFSpriteWithAlpha()
+{
+	CC_SAFE_RELEASE(_initialTexture);
+}
+
 
 bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated)
 {
@@ -17,7 +31,12 @@ bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& re
 			_colorTransform[i + 4] = 0;
 		}
 		_setBlendingFunc();
-		return ensureShaderValid();
+		setShaderProgram(programForShader());
+		_initialTexture = pTexture;
+		_initialTexture->retain();
+		_initialTextureRect = rect;
+		_blurRadius = CCSizeZero;
+		return true;
 	}
 	else
 	{
@@ -25,7 +44,7 @@ bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& re
 	}
 }
 
-bool GAFSpriteWithAlpha::ensureShaderValid()
+CCGLProgram * GAFSpriteWithAlpha::programForShader()
 {
 	CCGLProgram * program = CCShaderCache::sharedShaderCache()->programForKey(kGAFSpriteWithAlphaShaderProgramCacheKey);
 	if (!program)
@@ -45,7 +64,7 @@ bool GAFSpriteWithAlpha::ensureShaderValid()
 		{
 			CCLOGERROR("Cannot load program for GAFSpriteWithAlpha.");
 			CC_SAFE_DELETE(program);
-			return false;
+			return NULL;
 		}
 	}
 	setShaderProgram(program);
@@ -54,15 +73,38 @@ bool GAFSpriteWithAlpha::ensureShaderValid()
 	if (_colorTrasformLocation <= 0)
 	{
 		CCLOGERROR("Cannot load program for GAFSpriteWithAlpha.");
-		return false;
 	}
-	return true;
+	return program;
 }
 
-void GAFSpriteWithAlpha::draw()
+void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 {
-	ensureShaderValid();
-	GAFSprite::draw();
+	if (_blurRadius.width != blurRadius.width || _blurRadius.height != blurRadius.height)
+	{
+		_blurRadius = blurRadius;
+		updateTextureWithEffects();
+	}
+}
+
+void GAFSpriteWithAlpha::updateTextureWithEffects()
+{
+	if (_blurRadius.width == 0 && _blurRadius.height == 0)
+	{
+		setTexture(_initialTexture);
+		setTextureRect(_initialTextureRect, false, _initialTextureRect.size);
+	}
+	else
+	{
+		GAFTextureEffectsConverter * converter = GAFTextureEffectsConverter::sharedConverter();
+		CCRenderTexture * resultTex = converter->gaussianBlurredTextureFromTexture(_initialTexture, _initialTextureRect, _blurRadius.width, _blurRadius.height);
+		if (resultTex)
+		{
+			setTexture(resultTex->getSprite()->getTexture());
+			setFlipY(true);
+			CCRect texureRect = CCRectMake(0, 0, resultTex->getSprite()->getContentSize().width, resultTex->getSprite()->getContentSize().height);
+			setTextureRect(texureRect, false, texureRect.size);
+		}		
+	}
 }
 
 void GAFSpriteWithAlpha::setUniformsForFragmentShader()
