@@ -11,6 +11,8 @@
 #include "cocoa/CCInteger.h"
 #include "CCJSONData.h"
 
+#include <algorithm>
+
 #if CC_ENABLE_CACHE_TEXTURE_DATA
 #include "textures/CCTextureCache.h"
 #endif

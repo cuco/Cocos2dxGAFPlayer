@@ -8,7 +8,6 @@
 	#include "shaders/CCShaderCache.h"
 	#include "GAFSpriteWithAlpha.h"
 	#include "GAFStencilMaskSprite.h"
-	#include "GAFBlurredSprite.h"
 #endif
 
 CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSource, const char * fragmentFilename)

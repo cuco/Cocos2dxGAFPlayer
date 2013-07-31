@@ -1,7 +1,7 @@
 #include "GAFSpriteWithAlpha.h"
 #include "GAFShaderManager.h"
 #include "GAFTextureEffectsConverter.h"
-#include "CCRenderTexture.h"
+#include "misc_nodes/CCRenderTexture.h"
 
 #include "shaders/CCGLProgram.h"
 #include "shaders/CCShaderCache.h"

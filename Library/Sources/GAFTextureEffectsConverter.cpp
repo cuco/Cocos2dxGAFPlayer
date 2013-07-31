@@ -1,7 +1,7 @@
 #include "GAFTextureEffectsConverter.h"
-#include "CCRenderTexture.h"
-#include "CCGLProgram.h"
-#include "CCShaderCache.h"
+#include "misc_nodes/CCRenderTexture.h"
+#include "shaders/CCGLProgram.h"
+#include "shaders/CCShaderCache.h"
 #include "cocoa/CCDictionary.h"
 
 
