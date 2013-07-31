@@ -52,8 +52,8 @@ GAFTextureAtlas * GAFTextureAtlas::create(const char * aTexturesDirectory, CCDic
 
 static bool compare_atlases(const void* p1, const void* p2)
 {
-	CCDictionary* a1 = (CCDictionary*)a1;
-	CCDictionary* a2 = (CCDictionary*)a2;
+	CCDictionary* a1 = (CCDictionary*)p1;
+	CCDictionary* a2 = (CCDictionary*)p2;
 	CCInteger * id1 = (CCInteger*)a1->objectForKey("id");
 	CCInteger * id2 = (CCInteger*)a2->objectForKey("id");
 	CCAssert(id1 && id2, "id parameters must be valid");
@@ -77,34 +77,38 @@ bool GAFTextureAtlas::init(const char * aTexturesDirectory, CCDictionary * aText
 	CC_SAFE_RELEASE(_images);
 	_images = new CCArray();
 	
-	for (int i = 0; i < atlasesInfo->count(); ++i)
+	if (atlasesInfo)
 	{
-		CCDictionary * atlasInfo = (CCDictionary*) atlasesInfo->objectAtIndex(i);
-		int desiredCsf = GAFAsset::desiredCsf();
-		CCArray * sources = (CCArray*) atlasInfo->objectForKey(kSourcesKey);
-		std::string source;
-		for (int j = 0; j < sources->count(); ++j)
+		for (int i = 0; i < atlasesInfo->count(); ++i)
 		{
-			CCDictionary * csfdict = (CCDictionary *) sources->objectAtIndex(j);
-			CCNumber * scsf = (CCNumber*) csfdict->objectForKey(kCSFKey);
-			int csf = scsf->getIntValue();
-			CCString * s = (CCString*) csfdict->objectForKey(kSourceKey);
-			if (1 == csf)
+			CCDictionary * atlasInfo = (CCDictionary*) atlasesInfo->objectAtIndex(i);
+			int desiredCsf = GAFAsset::desiredCsf();
+			CCArray * sources = (CCArray*) atlasInfo->objectForKey(kSourcesKey);
+			std::string source;
+			for (int j = 0; j < sources->count(); ++j)
 			{
-				source = s->getCString();
+				CCDictionary * csfdict = (CCDictionary *) sources->objectAtIndex(j);
+				CCNumber * scsf = (CCNumber*) csfdict->objectForKey(kCSFKey);
+				int csf = scsf->getIntValue();
+				CCString * s = (CCString*) csfdict->objectForKey(kSourceKey);
+				if (1 == csf)
+				{
+					source = s->getCString();
+				}
+				if (csf == desiredCsf)
+				{
+					source = s->getCString();
+					break;
+				}
 			}
-			if (csf == desiredCsf)
-			{
-				source = s->getCString();
-				break;
-			}
+			CCImage * image = new CCImage();
+			const char * path = CCFileUtils::sharedFileUtils()->fullPathFromRelativeFile(source.c_str(), aTexturesDirectory);
+			image->initWithImageFile(path);
+			_images->addObject(image);
+			image->release();
 		}
-		CCImage * image = new CCImage();
-		const char * path = CCFileUtils::sharedFileUtils()->fullPathFromRelativeFile(source.c_str(), aTexturesDirectory);
-		image->initWithImageFile(path);
-		_images->addObject(image);
-		image->release();
 	}
+	
 	loadElementsFromAnimationConfigDictionary(aTextureAtlasConfigDictionary);
 	return true;
 }
