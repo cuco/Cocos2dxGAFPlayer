@@ -276,7 +276,6 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			}
 		}
 		        
-		      
         if (spriteFrame)
         {
             GAFSpriteWithAlpha *sprite = new GAFSpriteWithAlpha();
@@ -289,6 +288,11 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 									 0 + (1 - (element->pivotPoint.y / sprite->getContentSize().height)));
             sprite->setAnchorPoint(pt);
 			sprite->setUseExternalTransform(true);
+			
+			if (element->scale != 1.0f)
+			{
+				sprite->setAtlasScale(1.0f / element->scale);
+			}
             
             // Add to hierarchy
 			_subObjects->setObject(sprite, pElement->getStrKey());

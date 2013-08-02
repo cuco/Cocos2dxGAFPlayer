@@ -57,6 +57,7 @@ public:
 	{
 		_isLocator = locator;
 	}
+	void setAtlasScale(float scale);
 protected:
 	CCAffineTransform _externalTransform;
 	CCAffineTransform _childTransform;
@@ -69,6 +70,7 @@ private:
 	bool _useSeparateBlendFunc;
 	bool _isLocator;
 	GLint _blendEquation;
+	float _atlasScale;
 };
 
 

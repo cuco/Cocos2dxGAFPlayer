@@ -1,12 +1,13 @@
 #include "GAFTextureAtlasElement.h"
 
 #include "cocoa/CCInteger.h"
-#include "cocoa/CCFloat.h"
+#include "CCJSONData.h"
 #include "cocoa/CCDictionary.h"
 
 static const char * kNameKey    = "name";
 static const char * kXKey       = "x";
 static const char * kYKey       = "y";
+static const char * kScaleKey   = "scale";
 static const char * kHeightKey  = "height";
 static const char * kWidthKey   = "width";
 static const char * kPivotXKey  = "pivotX";
@@ -38,6 +39,16 @@ bool GAFTextureAtlasElement::initWithDictionary(CCDictionary * aDictionary)
 		name = std::string(jName->getCString());
 	}
 	
+	CCNumber  * s   = (CCNumber *)  aDictionary->objectForKey(kScaleKey);
+	if (!s)
+	{
+		scale = 1.0f;
+	}
+	else
+	{
+		scale = (float)s->getDoubleValue();
+	}
+
 	CCInteger * nX      = (CCInteger*)aDictionary->objectForKey(kXKey);
 	CCInteger * nY      = (CCInteger*)aDictionary->objectForKey(kYKey);
 	CCInteger * nWidth  = (CCInteger*)aDictionary->objectForKey(kWidthKey);

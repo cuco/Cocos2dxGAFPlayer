@@ -18,7 +18,8 @@ _useSeparateBlendFunc(false),
 _isLocator(false),
 _blendEquation(-1),
 _externalTransform(CCAffineTransformIdentity),
-_childTransform(CCAffineTransformIdentity)
+_childTransform(CCAffineTransformIdentity),
+_atlasScale(1.0f)
 {
 	
 }
@@ -45,13 +46,28 @@ void GAFSprite::setChildTransform(const CCAffineTransform& transform)
 	}	
 }
 
+void GAFSprite::setAtlasScale(float scale)
+{
+	if (_atlasScale != scale)
+	{
+		_atlasScale = scale;
+		m_bTransformDirty = true;
+		m_bInverseDirty = true;
+	}
+}
+
 CCAffineTransform GAFSprite::nodeToParentTransform(void)
 {
 	if (_useExternalTransform)
 	{
 		if (m_bTransformDirty)
 		{
-			m_sTransform = CCAffineTransformTranslate(_externalTransform, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
+			CCAffineTransform t = _externalTransform;
+			if (_atlasScale != 1.0f)
+			{
+				t = CCAffineTransformScale(t, _atlasScale, _atlasScale);
+			}
+			m_sTransform = CCAffineTransformTranslate(t, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
 			m_bTransformDirty = false;
 			GAFSprite * parent = dynamic_cast<GAFSprite*>(m_pParent);
 			if (parent && parent->isUseChildTransform())

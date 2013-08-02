@@ -19,6 +19,7 @@ public:
 	std::string name;	
 	CCPoint     pivotPoint;
 	CCRect      bounds;
+	float       scale;
 	int         atlasIdx;
 
 	static GAFTextureAtlasElement * create(CCDictionary * aDictionary);
