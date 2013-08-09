@@ -333,6 +333,11 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 				mask->setAnchorPoint(pt);
 				mask->setUseExternalTransform(true);
 				
+				if (element->scale != 1.0f)
+				{
+					mask->setAtlasScale(1.0f / element->scale);
+				}
+				
 				_masks->setObject(mask, pElement->getStrKey());
 				addChild(mask);
 				

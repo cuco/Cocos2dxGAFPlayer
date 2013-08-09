@@ -1,6 +1,5 @@
 #include "GAFTextureAtlas.h"
 #include "GAFTextureAtlasElement.h"
-#include "GAFData.h"
 #include "GAFAsset.h"
 
 #include "platform/CCImage.h"

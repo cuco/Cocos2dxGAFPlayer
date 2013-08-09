@@ -15,7 +15,6 @@ namespace cocos2d
 using namespace cocos2d;
 
 class GAFTextureAtlas;
-class GAFData;
 class GAFAnimatedObject;
 class GAFAnimationSequence;
 

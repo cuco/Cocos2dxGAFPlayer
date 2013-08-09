@@ -92,6 +92,7 @@ void GAFSpriteWithAlpha::updateTextureWithEffects()
 	{
 		setTexture(_initialTexture);
 		setTextureRect(_initialTextureRect, false, _initialTextureRect.size);
+		setFlipY(false);
 	}
 	else
 	{
