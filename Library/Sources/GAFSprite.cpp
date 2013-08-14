@@ -13,7 +13,6 @@
 GAFSprite::GAFSprite()
 :
 _useExternalTransform(false),
-_useChildTransform(false),
 _useSeparateBlendFunc(false),
 _isLocator(false),
 _blendEquation(-1),
@@ -33,17 +32,6 @@ void GAFSprite::setExternaTransform(const CCAffineTransform& transform)
 		m_bTransformDirty = true;
 		m_bInverseDirty = true;
 	}
-}
-
-void GAFSprite::setChildTransform(const CCAffineTransform& transform)
-{
-	if (!CCAffineTransformEqualToTransform(_childTransform, transform))
-	{
-		_childTransform = transform;
-		_useChildTransform = true;
-		m_bTransformDirty = true;
-		m_bInverseDirty = true;
-	}	
 }
 
 void GAFSprite::setAtlasScale(float scale)
@@ -69,15 +57,8 @@ CCAffineTransform GAFSprite::nodeToParentTransform(void)
 			}
 			m_sTransform = CCAffineTransformTranslate(t, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
 			m_bTransformDirty = false;
-			GAFSprite * parent = dynamic_cast<GAFSprite*>(m_pParent);
-			if (parent && parent->isUseChildTransform())
-			{
-				m_sTransform = CCAffineTransformConcat(m_sTransform, parent->childTransform());
-			}
-			m_bTransformDirty = false;
 		}
-		return m_sTransform;
-		
+		return m_sTransform;		
 	}
 	else
 	{
@@ -271,10 +252,6 @@ void GAFSprite::setUseExternalTransform(bool use)
 	_useExternalTransform = use;
 }
 
-void GAFSprite::setUseChildTransform(bool use)
-{
-	_useChildTransform = use;
-}
 
 void GAFSprite::setUniformsForFragmentShader()
 {

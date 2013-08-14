@@ -79,6 +79,7 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 
 void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 {
+	setShaderProgram(programForShader());
 	if (_blurRadius.width != blurRadius.width || _blurRadius.height != blurRadius.height)
 	{
 		_blurRadius = blurRadius;
@@ -88,6 +89,7 @@ void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 
 void GAFSpriteWithAlpha::updateTextureWithEffects()
 {
+	setShaderProgram(programForShader());
 	if (_blurRadius.width == 0 && _blurRadius.height == 0)
 	{
 		setTexture(_initialTexture);
@@ -110,6 +112,7 @@ void GAFSpriteWithAlpha::updateTextureWithEffects()
 
 void GAFSpriteWithAlpha::setUniformsForFragmentShader()
 {
+	setShaderProgram(programForShader());
 	glUniform4fv(_colorTrasformLocation, 2, _colorTransform);
 }
 

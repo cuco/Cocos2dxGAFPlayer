@@ -40,11 +40,6 @@ public:
 	{
 		return _useExternalTransform;
 	}
-	
-	inline bool isUseChildTransform() const
-	{
-		return _useChildTransform;
-	}
 	inline const CCAffineTransform &childTransform() const
 	{
 		return _childTransform;
@@ -66,7 +61,6 @@ protected:
 private:
 	gafBlendFuncSeparate _blendFuncSeparate;
 	bool _useExternalTransform;
-	bool _useChildTransform;
 	bool _useSeparateBlendFunc;
 	bool _isLocator;
 	GLint _blendEquation;
