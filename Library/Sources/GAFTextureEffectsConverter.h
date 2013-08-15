@@ -24,8 +24,7 @@ public:
 	~GAFTextureEffectsConverter();
 	static GAFTextureEffectsConverter * sharedConverter();
 	CCRenderTexture * gaussianBlurredTextureFromTexture(CCTexture2D * aTexture, const CCRect& rect, float aBlurRadiusX, float aBlurRadiusY);
-protected:
-	CCGLProgram * programForBlurShaderWithName(const char * aShaderName, const char * aVertexShaderFile, const char * aFragmentShaderFile);
+	static CCGLProgram * programForBlurShaderWithName(const char * aShaderName, const char * aVertexShaderFile, const char * aFragmentShaderFile);
 private:
 	CCDictionary * _vertexShaderUniforms;
 };

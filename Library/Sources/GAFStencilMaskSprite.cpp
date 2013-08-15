@@ -4,7 +4,7 @@
 #include "shaders/ccShaders.h"
 #include <algorithm>
 
-static const char * kPCStencilMaskAlphaFilterFragmentShaderFilename = "pcShader_PositionTexture_alphaFilter.fs";
+static const char * kPCStencilMaskAlphaFilterFragmentShaderFilename = "Shaders/pcShader_PositionTexture_alphaFilter.fs";
 
 
 static bool compare_stencil_sprites(const void* p1, const void* p2)
@@ -68,8 +68,7 @@ GAFStencilMaskSprite::~GAFStencilMaskSprite()
 
 void GAFStencilMaskSprite::visit()
 {
-	GAFSprite::visit();
-    
+	GAFSprite::visit();    
 	sortAllMaskedObjects();
     // Draw subobjects, assuming mask and object are on the same layer
 	for (int i = 0; i < _maskedObjects->count(); ++i)
@@ -151,7 +150,7 @@ void GAFStencilMaskSprite::invalidateMaskedObjectsOrder()
 
 CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
 {
-	CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey(kPCStencilMaskAlphaFilterProgramCacheKey);
+	CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey(kGAFStencilMaskAlphaFilterProgramCacheKey);
 	
     if (!program)
     {
@@ -164,7 +163,7 @@ CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
             program->link();
 			program->updateUniforms();
             CHECK_GL_ERROR_DEBUG();
-			CCShaderCache::sharedShaderCache()->addProgram(program, kPCStencilMaskAlphaFilterProgramCacheKey);
+			CCShaderCache::sharedShaderCache()->addProgram(program, kGAFStencilMaskAlphaFilterProgramCacheKey);
             program->release();
         }
         else
@@ -178,5 +177,30 @@ CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
 	return program;
 }
 
-
-
+#if CC_ENABLE_CACHE_TEXTURE_DATA
+void _GAFreloadStencilShader()
+{
+	CCGLProgram * program = CCShaderCache::sharedShaderCache()->programForKey(kGAFStencilMaskAlphaFilterProgramCacheKey);
+	
+	if (!program)
+	{
+		return;
+	}
+	program->reset();
+	program = GAFShaderManager::createWithFragmentFilename(ccPositionTextureColor_vert, kPCStencilMaskAlphaFilterFragmentShaderFilename, program);
+	if (program)
+	{
+		program->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+		program->addAttribute(kCCAttributeNameColor,    kCCVertexAttrib_Color);
+		program->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+		program->link();
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+		CCLOGERROR("GAFStencilMaskSprite RELOADED");
+	}
+	else
+	{
+		CCAssert(false, "Can not RELOAD programShaderForMask");
+	}
+}
+#endif

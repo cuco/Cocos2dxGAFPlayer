@@ -3,8 +3,7 @@
 #include "shaders/CCGLProgram.h"
 #include "shaders/CCShaderCache.h"
 #include "cocoa/CCDictionary.h"
-
-
+#include "GAFShaderManager.h"
 
 GAFTextureEffectsConverter::GAFTextureEffectsConverter()
 {
@@ -36,7 +35,7 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 	
 	CCRenderTexture *rTexture1 = CCRenderTexture::create(rTextureSize.width, rTextureSize.height);
 	CCRenderTexture *rTexture2 = CCRenderTexture::create(rTextureSize.width, rTextureSize.height);
-	CCGLProgram * shader = programForBlurShaderWithName("GaussianBlur", "GaussianBlurVertexShader.vs", "GaussianBlurFragmentShader.fs");
+	CCGLProgram * shader = programForBlurShaderWithName("GaussianBlur", "Shaders/GaussianBlurVertexShader.vs", "Shaders/GaussianBlurFragmentShader.fs");
 	if (!shader)
 	{
 		return NULL;
@@ -86,8 +85,7 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 		rTexture1->getSprite()->visit();
 		rTexture2->end();
     }    
-    CHECK_GL_ERROR_DEBUG();
-    
+    CHECK_GL_ERROR_DEBUG();    
     return rTexture2;
 }
 
@@ -115,3 +113,29 @@ CCGLProgram * GAFTextureEffectsConverter::programForBlurShaderWithName(const cha
 	}
 	return program;
 }
+
+#if CC_ENABLE_CACHE_TEXTURE_DATA
+void _GAFreloadBlurShader()
+{
+	CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey("GaussianBlur");
+	if (!program)
+	{
+		return;
+	}
+	program->reset();
+	program->initWithVertexShaderFilename("Shaders/GaussianBlurVertexShader.vs", "Shaders/GaussianBlurFragmentShader.fs");
+	if (program)
+	{
+		program->addAttribute("position", kCCVertexAttrib_Position);
+		program->addAttribute("inputTextureCoordinate", kCCVertexAttrib_TexCoords);
+		program->link();
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+	}
+	else
+	{
+		CCAssert(false, "Can not RELOAD GAFTextureEffectsConverter");
+	}
+	CCLOGERROR("GAFTextureEffectsConverter RELOADED");
+}
+#endif

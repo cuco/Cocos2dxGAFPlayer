@@ -7,7 +7,8 @@
 #include "shaders/CCShaderCache.h"
 #include "shaders/ccShaders.h"
 
-static const char * kAlphaFragmentShaderFilename = "pcShader_PositionTextureAlpha_frag.fs";
+static const char * kAlphaFragmentShaderFilename = "Shaders/pcShader_PositionTextureAlpha_frag.fs";
+static GLuint _colorTrasformLocation = 0;
 
 GAFSpriteWithAlpha::GAFSpriteWithAlpha()
 :
@@ -67,7 +68,6 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 			return NULL;
 		}
 	}
-	//setShaderProgram(program);
 	program->use();
 	_colorTrasformLocation = (GLuint)glGetUniformLocation(program->getProgram(), "colorTransform");
 	if (_colorTrasformLocation <= 0)
@@ -79,7 +79,6 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 
 void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 {
-//	setShaderProgram(programForShader());
 	if (_blurRadius.width != blurRadius.width || _blurRadius.height != blurRadius.height)
 	{
 		_blurRadius = blurRadius;
@@ -89,7 +88,6 @@ void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 
 void GAFSpriteWithAlpha::updateTextureWithEffects()
 {
-//	setShaderProgram(programForShader());
 	if (_blurRadius.width == 0 && _blurRadius.height == 0)
 	{
 		setTexture(_initialTexture);
@@ -142,3 +140,40 @@ void GAFSpriteWithAlpha::_setBlendingFunc()
 	bf.dst = GL_ONE_MINUS_SRC_ALPHA;
 	setBlendFunc(bf);
 }
+
+
+
+#if CC_ENABLE_CACHE_TEXTURE_DATA
+void _GAFreloadAlphaShader()
+{
+	CCGLProgram * program = CCShaderCache::sharedShaderCache()->programForKey(kGAFSpriteWithAlphaShaderProgramCacheKey);
+	
+	if (!program)
+	{		
+		return;
+	}
+	program->reset();
+	program = GAFShaderManager::createWithFragmentFilename(ccPositionTextureColor_vert, kAlphaFragmentShaderFilename, program);
+	if (program)
+	{
+		program->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+		program->addAttribute(kCCAttributeNameColor,    kCCVertexAttrib_Color);
+		program->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+		program->link();
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+		program->use();
+		_colorTrasformLocation = (GLuint)glGetUniformLocation(program->getProgram(), "colorTransform");
+		if (_colorTrasformLocation <= 0)
+		{
+			CCAssert(false, "Can not RELOAD GAFSpriteWithAlpha");
+		}
+		CCLOGERROR("GAFSpriteWithAlpha RELOADED");
+	}
+	else
+	{
+		CCAssert(false, "Can not RELOAD GAFSpriteWithAlpha");
+	}	
+}
+#endif
+

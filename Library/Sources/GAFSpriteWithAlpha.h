@@ -7,7 +7,6 @@
 
 using namespace cocos2d;
 
-#define kGAFSpriteWithAlphaShaderProgramCacheKey "kGAFSpriteWithAlphaShaderProgramCache"
 #define kGAFSpriteWithAlphaShaderProgramCacheKey  "kGAFSpriteWithAlphaShaderProgramCache"
 
 class GAFSpriteWithAlpha : public GAFSprite
@@ -17,7 +16,7 @@ public:
 	~GAFSpriteWithAlpha();
 	virtual void setUniformsForFragmentShader();
 	virtual bool initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated);
-	CCGLProgram * programForShader();
+	static CCGLProgram * programForShader();
 	void setColorTransform(const GLfloat * mults, const GLfloat * offsets);
 	const GLfloat * getColorTransform() const
 	{
@@ -30,7 +29,6 @@ protected:
 private:
 	void _setBlendingFunc();
 	GLfloat _colorTransform[8]; // 0-3 mults, 4-7 offsets
-    GLuint  _colorTrasformLocation;
 	CCSize   _blurRadius;
 	CCTexture2D * _initialTexture;
 	CCRect        _initialTextureRect;

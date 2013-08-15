@@ -13,7 +13,7 @@ using namespace cocos2d;
 class GAFShaderManager
 {
 public:
-	static CCGLProgram * createWithFragmentFilename(const char * vertexSource, const char * fragmentFilename);
+	static CCGLProgram * createWithFragmentFilename(const char * vertexSource, const char * fragmentFilename, CCGLProgram * p = 0);
 	static void handleEnterBackground();
 
 }; // GAFShaderManager

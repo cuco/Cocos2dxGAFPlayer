@@ -4,13 +4,8 @@
 #include "platform/CCFileUtils.h"
 #include "shaders/CCGLProgram.h"
 
-#if CC_ENABLE_CACHE_TEXTURE_DATA
-	#include "shaders/CCShaderCache.h"
-	#include "GAFSpriteWithAlpha.h"
-	#include "GAFStencilMaskSprite.h"
-#endif
 
-CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSource, const char * fragmentFilename)
+CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSource, const char * fragmentFilename, CCGLProgram * p)
 {
 	if (!vertexSource || !fragmentFilename)
 	{
@@ -25,7 +20,17 @@ CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSo
 		CCLOGERROR("Cannot load fragment shader with name %s", fragmentFilename);
 		return NULL;
 	}
-	CCGLProgram * res = new CCGLProgram();
+	CCGLProgram * res;
+	
+	if (p)
+	{
+		res = p;
+	}
+	else
+	{
+		res = new CCGLProgram();
+	}
+	
 	if (!res)
 	{
 		return NULL;
@@ -41,26 +46,4 @@ CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSo
 		return NULL;
 	}
 	return res;
-}
-
-#if CC_ENABLE_CACHE_TEXTURE_DATA
-static inline void _invalidate(const char * shader_key)
-{
-	CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey(shader_key);
-	if (program)
-	{
-		program->reset();	
-	}
-}
-#endif
-
-void GAFShaderManager::handleEnterBackground()
-{
-#if CC_ENABLE_CACHE_TEXTURE_DATA
-	//_invalidate(kGAFBlurredSpriteHorizontalBlurShaderProgramCacheKey);
-	//_invalidate(kGAFBlurredSpriteVerticalBlurShaderProgramCacheKey);
-	//_invalidate(kPCStencilMaskAlphaFilterProgramCacheKey);
-	//_invalidate(kGAFSpriteWithAlphaShaderProgramCacheKey);
-	//CCShaderCache::sharedShaderCache()->purgeSharedShaderCache();
-#endif
 }

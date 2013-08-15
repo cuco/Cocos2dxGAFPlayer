@@ -12,7 +12,7 @@ namespace cocos2d
 	class CCArray;
 }
 
-#define  kPCStencilMaskAlphaFilterProgramCacheKey "kPCScrollLayerAlphaFilterProgramCacheKey"
+#define  kGAFStencilMaskAlphaFilterProgramCacheKey "kGAFScrollLayerAlphaFilterProgramCacheKey"
 
 using namespace cocos2d;
 
@@ -22,7 +22,7 @@ public:
 	GAFStencilMaskSprite();
 	~GAFStencilMaskSprite();
 	virtual bool initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated);
-	CCGLProgram * programShaderForMask();
+	static CCGLProgram * programShaderForMask();
 	virtual void draw();
 	virtual void visit();
 
