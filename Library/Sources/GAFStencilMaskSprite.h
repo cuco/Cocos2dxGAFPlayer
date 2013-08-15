@@ -25,10 +25,13 @@ public:
 	CCGLProgram * programShaderForMask();
 	virtual void draw();
 	virtual void visit();
-	void addMaskedObject(CCNode * anObject);
+
 	void invalidateMaskedObjectsOrder();
 	
 	static void updateMaskContainerOf(CCNode * node);
+	
+	void addMaskedObject(CCNode * anObject);
+	void removeMaskedObject(CCNode * anObject);
 protected:
 	void sortAllMaskedObjects();
 private:

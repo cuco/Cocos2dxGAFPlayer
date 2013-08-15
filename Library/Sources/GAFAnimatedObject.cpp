@@ -106,7 +106,7 @@ bool GAFAnimatedObject::init(GAFAsset * anAsset)
 	_capturedObjects = CCDictionary::create();
 	CC_SAFE_RETAIN(_capturedObjects);
 	
-	_FPSType = PCAnimationFPSType_30;
+	_FPSType = kGAFAnimationFPSType_30;
 	_extraFramesCounter = 0;
 	_animationsSelectorScheduled = false;	
 	return true;
@@ -128,65 +128,6 @@ static bool util_ccarray_contains_string(CCArray * array, const std::string& str
 	}
 	
 	return false;
-}
-
-CCDictionary * GAFAnimatedObject::masksAssociationStructureFromAnimationObjectIds
-(CCArray * anAnimationObjectIds, CCArray * anAnimationFrames, CCArray **aMaskedObjectIds)
-{
-    CCDictionary * maskedObjectsStructure = new CCDictionary();
-    
-    if (aMaskedObjectIds)
-    {
-        *aMaskedObjectIds = CCArray::create();
-    }
-    
-    CCArray *animationObjectIds = CCArray::createWithArray(anAnimationObjectIds);
-    for (int i = 0; i < anAnimationFrames->count(); ++i)
-    {
-		GAFAnimationFrame * frame = (GAFAnimationFrame*)anAnimationFrames->objectAtIndex(i);
-        for (int j = 0; j < frame->objectStates()->count(); ++j)
-        {
-			GAFSubobjectState *state = (GAFSubobjectState *)frame->objectStates()->objectAtIndex(j);
-            if (state->maskObjectId.length())
-            {
-                CCArray *maskSubObjects = (CCArray*)maskedObjectsStructure->objectForKey(state->maskObjectId);
-                if (!maskSubObjects)
-                {
-                    maskSubObjects = CCArray::create();
-					maskedObjectsStructure->setObject(maskSubObjects, state->maskObjectId);
-                }
-				
-				CCString * str = CCString::create(state->objectId);
-				if (!util_ccarray_contains_string(maskSubObjects, str->getCString()))
-				{
-					maskSubObjects->addObject(str);
-				}
-				if (aMaskedObjectIds)
-				{
-					if (!util_ccarray_contains_string(*aMaskedObjectIds, str->getCString()))
-					{
-						(*aMaskedObjectIds)->addObject(str);
-					}
-				}
-				// this can be improved in original code
-				for (int k = 0; k < animationObjectIds->count(); ++k)
-				{
-					CCString * obj = (CCString*)(animationObjectIds->objectAtIndex(k));
-					if (obj && state->objectId == obj->getCString())
-					{
-						animationObjectIds->fastRemoveObjectAtIndex(k);
-						--k;
-					}
-				}
-            }
-        }
-        
-        if (!animationObjectIds->count())
-		{
-			break;
-		}
-    }
-	return maskedObjectsStructure;
 }
 
 GAFSprite * GAFAnimatedObject::subobjectByName(const char * name)
@@ -249,15 +190,11 @@ void GAFAnimatedObject::addSubObjectsUsingAnimationObjectsDictionary(CCDictionar
 CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 {
     CCArray * maskedObjectIds = NULL;
-	CCArray * allKeys = anAnimationObjects->allKeys();
-    CCDictionary *maskedObjectsStructure = masksAssociationStructureFromAnimationObjectIds(allKeys, anAnimationFrames, &maskedObjectIds);
-    
-	
 	CCDictElement* pElement = NULL;
     CCDICT_FOREACH(anAnimationObjects, pElement)
     {
 		
-        CCString * atlasElementId = (CCString *)anAnimationObjects->objectForKey(pElement->getStrKey());
+        CCString * atlasElementId = (CCString *)pElement->getObject();
         CCSpriteFrame * spriteFrame = NULL;
 		GAFTextureAtlas * atlas = _asset->textureAtlas();
 		
@@ -293,14 +230,16 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			{
 				sprite->setAtlasScale(1.0f / element->scale);
 			}
+			
+			sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ONE_MINUS_SRC_ALPHA });
             
             // Add to hierarchy
 			_subObjects->setObject(sprite, pElement->getStrKey());
             // Check if the object is masked (don't add it to visual hierarchy then)
-            if (!util_ccarray_contains_string(maskedObjectIds, pElement->getStrKey()))
-            {
-				addChild(sprite);
-            }
+            //if (!util_ccarray_contains_string(maskedObjectIds, pElement->getStrKey()))
+           // {
+			//	addChild(sprite);
+            //}
 			sprite->release();
         }
         else
@@ -310,9 +249,9 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
     }
     
 
-	CCDICT_FOREACH(maskedObjectsStructure, pElement)
+	CCDICT_FOREACH(anAnimationMasks, pElement)
 	{
-		CCString * atlasElementId = (CCString *)anAnimationMasks->objectForKey(pElement->getStrKey());
+		CCString * atlasElementId = (CCString *)pElement->getObject();
 		
 		CCSpriteFrame *spriteFrame = NULL;
 		GAFTextureAtlas * atlas = _asset->textureAtlas();
@@ -326,6 +265,8 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			{
 				GAFStencilMaskSprite *mask = new GAFStencilMaskSprite();
 				mask->initWithSpriteFrame(spriteFrame);
+				mask->objectId = pElement->getStrKey();
+				//mask->atlasElementId = atlasElementId->getCString();
 				
 				CCPoint pt = CCPointMake(0 - (0 - (element->pivotPoint.x / mask->getContentSize().width)),
 										 0 + (1 - (element->pivotPoint.y / mask->getContentSize().height)));
@@ -340,29 +281,10 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 				
 				_masks->setObject(mask, pElement->getStrKey());
 				addChild(mask);
-				
-				// Adding masked objects to mask
-				CCArray * arr = (CCArray*) maskedObjectsStructure->objectForKey(pElement->getStrKey());
-				if (arr)
-				{
-					for (int j = 0; j < arr->count(); ++j)
-					{
-						CCString * objectId = (CCString*)arr->objectAtIndex(j);
-						GAFSprite * subobject = (GAFSprite*)_subObjects->objectForKey(objectId->getCString());
-						if (subobject)
-						{
-							mask->addMaskedObject(subobject);
-						}
-						else
-						{
-							CCLOGERROR("Object with id:%s is not in 'animationObjects' list in config json.", objectId->getCString());
-						}
-					}
-				}
+				mask->release();
 			}
 		}
 	}
-	CC_SAFE_RELEASE(maskedObjectsStructure);
 }
 
 bool GAFAnimatedObject::captureControlOverSubobjectNamed(const char * aName, GAFAnimatedObjectControlFlags aControlFlags)
@@ -550,9 +472,7 @@ void GAFAnimatedObject::processAnimation()
 				}
 				
 				if (subObject)
-				{
-					subObject->setVisible(true);
-					
+				{					
 					// Validate sprite type (w/ or w/o filter)
 					GAFBlurFilterData *blurFilter = NULL;
 					
@@ -585,13 +505,11 @@ void GAFAnimatedObject::processAnimation()
 						if (subObject->getParent())
 						{
 							removeChild(subObject, false);
-						}
-						CCDictionary * aMasks = masks();
-						
+						}						
 						GAFStencilMaskSprite * mask = NULL;
-						if (aMasks)
+						if (_masks)
 						{
-							mask = (GAFStencilMaskSprite *)aMasks->objectForKey(state->objectId);
+							mask = (GAFStencilMaskSprite *)_masks->objectForKey(state->maskObjectId);
 						}
 						if (mask)
 						{

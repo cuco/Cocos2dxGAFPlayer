@@ -33,6 +33,20 @@ void GAFStencilMaskSprite::updateMaskContainerOf(CCNode * node)
 	}
 }
 
+
+bool GAFStencilMaskSprite::initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated)
+{
+	if (!GAFSprite::initWithTexture(pTexture, CCRectMake(0, 0, rect.size.width, rect.size.height), rotated))
+	{
+		return false;
+	}
+	CC_SAFE_RELEASE(_maskedObjects);
+	_maskedObjects = new CCArray();
+	setShaderProgram(programShaderForMask());
+	_isReorderMaskedObjectsDirty = false;
+	return true;
+}
+
 GAFStencilMaskSprite::~GAFStencilMaskSprite()
 {
 	if (_maskedObjects)
@@ -51,35 +65,6 @@ GAFStencilMaskSprite::~GAFStencilMaskSprite()
 	CC_SAFE_RELEASE(_maskedObjects);
 }
 
-bool GAFStencilMaskSprite::initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated)
-{
-	if (!GAFSprite::initWithTexture(pTexture, CCRectMake(0, 0, rect.size.width, rect.size.height), rotated))
-	{
-		return false;
-	}
-	CC_SAFE_RELEASE(_maskedObjects);
-	_maskedObjects = new CCArray();
-	return true;
-}
-
-void GAFStencilMaskSprite::draw()
-{
-	setShaderProgram(programShaderForMask());
-	// Prepare stencil
-    glEnable(GL_STENCIL_TEST);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 1);
-    
-    // Draw mask
-	GAFSprite::draw();
-    
-    // Use stencil
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glStencilFunc(GL_EQUAL, 1, 1);
-}
 
 void GAFStencilMaskSprite::visit()
 {
@@ -104,6 +89,64 @@ void GAFStencilMaskSprite::sortAllMaskedObjects()
 				  compare_stencil_sprites);
 		_isReorderMaskedObjectsDirty = false;
 	}
+}
+
+void GAFStencilMaskSprite::draw()
+{
+	// Prepare stencil
+    glEnable(GL_STENCIL_TEST);
+    glClear(GL_STENCIL_BUFFER_BIT);
+    
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 1);
+    
+    // Draw mask
+	GAFSprite::draw();
+    
+    // Use stencil
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glStencilFunc(GL_EQUAL, 1, 1);
+}
+
+void GAFStencilMaskSprite::addMaskedObject(CCNode * anObject)
+{	
+	std::map<CCNode *, GAFStencilMaskSprite *>::iterator it = _object2maskedContainer.find(anObject);
+	
+	GAFStencilMaskSprite * maskContainer = it != _object2maskedContainer.end() ? it->second : NULL;
+	
+	if (maskContainer)
+	{
+		maskContainer->removeMaskedObject(anObject);
+	}
+	
+	it = _object2maskedContainer.find(anObject);
+	
+	maskContainer = it != _object2maskedContainer.end() ? it->second : NULL;
+	
+	if (maskContainer != this)
+	{
+		_object2maskedContainer[anObject] = this;
+		_maskedObjects->addObject(anObject);
+		_isReorderMaskedObjectsDirty = true;
+	}
+}
+
+void GAFStencilMaskSprite::removeMaskedObject(CCNode * anObject)
+{
+	if (_maskedObjects->containsObject(anObject))
+	{
+		std::map<CCNode *, GAFStencilMaskSprite *>::iterator it = _object2maskedContainer.find(anObject);
+		CCAssert(it != _object2maskedContainer.end(), "iterator must be valid");
+		_object2maskedContainer.erase(it);
+		_maskedObjects->removeObject(anObject);
+		_isReorderMaskedObjectsDirty = true;
+	}
+}
+
+void GAFStencilMaskSprite::invalidateMaskedObjectsOrder()
+{
+	_isReorderMaskedObjectsDirty = true;
 }
 
 CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
@@ -133,24 +176,6 @@ CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
 	
     program->use();
 	return program;
-}
-
-void GAFStencilMaskSprite::addMaskedObject(CCNode * anObject)
-{
-	if (_object2maskedContainer.find(anObject) != _object2maskedContainer.end())
-	{
-		GAFStencilMaskSprite * oldCont = _object2maskedContainer[anObject];
-		oldCont->_maskedObjects->removeObject(anObject);
-		oldCont->_isReorderMaskedObjectsDirty = true;
-	}
-	_object2maskedContainer[anObject] = this;
-	_maskedObjects->addObject(anObject);
-	_isReorderMaskedObjectsDirty = true;
-}
-
-void GAFStencilMaskSprite::invalidateMaskedObjectsOrder()
-{
-	_isReorderMaskedObjectsDirty = true;
 }
 
 

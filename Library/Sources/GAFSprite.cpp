@@ -164,6 +164,7 @@ void GAFSprite::updateTransform(void)
 
 void GAFSprite::draw(void)
 {
+	assert(_useExternalTransform);
 	if (_isLocator)
 	{
 		return;
@@ -233,18 +234,6 @@ void GAFSprite::draw(void)
 void GAFSprite::invalidateTransformCache()
 {
 	m_bTransformDirty = true;
-}
-
-void GAFSprite::invalidateChildrenTranformCache()
-{
-	for (int i = 0; i < m_pChildren->count(); ++i)
-	{
-		GAFSprite * child = dynamic_cast<GAFSprite*>(m_pChildren->objectAtIndex(i));
-		if (child)
-		{
-			child->invalidateTransformCache();
-		}
-	}
 }
 
 void GAFSprite::setUseExternalTransform(bool use)

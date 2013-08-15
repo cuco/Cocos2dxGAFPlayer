@@ -43,6 +43,16 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 	}
 	GLint texelWidthOffset = (GLint)glGetUniformLocation(shader->getProgram(), "texelWidthOffset");
     GLint texelHeightOffset = (GLint)glGetUniformLocation(shader->getProgram(), "texelHeightOffset");
+	CHECK_GL_ERROR_DEBUG();	
+	{
+		CCSprite *sprite = CCSprite::createWithTexture(aTexture, rect);
+        sprite->setPosition(CCPointMake(rTextureSize.width / 2, rTextureSize.height / 2));
+        sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ZERO });
+        
+        rTexture2->beginWithClear(0, 0, 0, 0);
+		sprite->visit();
+		rTexture2->end();
+	}
 	CHECK_GL_ERROR_DEBUG();
     {
         // Render rTexture2 to rTexture1 (horizontal)
@@ -63,8 +73,8 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 	CHECK_GL_ERROR_DEBUG();    
     {
         // Render rTexture1 to rTexture2 (vertical)
-        GLfloat texelWidthValue = aBlurRadiusX / (GLfloat)rTextureSize.width;
-        GLfloat texelHeightValue = 0;
+        GLfloat texelWidthValue = 0;
+        GLfloat texelHeightValue = aBlurRadiusY / (GLfloat)rTextureSize.height;
         
         rTexture1->getSprite()->setPosition(CCPointMake(rTextureSize.width / 2, rTextureSize.height / 2));
         rTexture1->getSprite()->setShaderProgram(shader);

@@ -25,9 +25,9 @@ using namespace cocos2d;
 
 enum PCAnimationFPSType
 {
-    PCAnimationFPSType_15 = 15,
-    PCAnimationFPSType_30 = 30,
-    PCAnimationFPSType_60 = 60
+    kGAFAnimationFPSType_15 = 15,
+    kGAFAnimationFPSType_30 = 30,
+    kGAFAnimationFPSType_60 = 60
 };
 
 enum GAFAnimatedObjectControlFlags

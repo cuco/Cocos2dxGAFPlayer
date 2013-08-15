@@ -57,7 +57,6 @@ protected:
 	CCAffineTransform _externalTransform;
 	CCAffineTransform _childTransform;
 	void invalidateTransformCache();
-	void invalidateChildrenTranformCache();
 private:
 	gafBlendFuncSeparate _blendFuncSeparate;
 	bool _useExternalTransform;

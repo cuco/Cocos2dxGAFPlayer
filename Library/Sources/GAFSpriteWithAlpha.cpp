@@ -25,6 +25,10 @@ bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& re
 {
 	if (GAFSprite::initWithTexture(pTexture, rect, rotated))
 	{
+		_initialTexture = pTexture;
+		_initialTexture->retain();
+		_initialTextureRect = rect;
+		_blurRadius = CCSizeZero;
 		for (int i = 0; i < 4; ++i)
 		{
 			_colorTransform[i]     = 1.0f;
@@ -32,10 +36,6 @@ bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& re
 		}
 		_setBlendingFunc();
 		setShaderProgram(programForShader());
-		_initialTexture = pTexture;
-		_initialTexture->retain();
-		_initialTextureRect = rect;
-		_blurRadius = CCSizeZero;
 		return true;
 	}
 	else
@@ -67,7 +67,7 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 			return NULL;
 		}
 	}
-	setShaderProgram(program);
+	//setShaderProgram(program);
 	program->use();
 	_colorTrasformLocation = (GLuint)glGetUniformLocation(program->getProgram(), "colorTransform");
 	if (_colorTrasformLocation <= 0)
@@ -79,7 +79,7 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 
 void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 {
-	setShaderProgram(programForShader());
+//	setShaderProgram(programForShader());
 	if (_blurRadius.width != blurRadius.width || _blurRadius.height != blurRadius.height)
 	{
 		_blurRadius = blurRadius;
@@ -89,7 +89,7 @@ void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 
 void GAFSpriteWithAlpha::updateTextureWithEffects()
 {
-	setShaderProgram(programForShader());
+//	setShaderProgram(programForShader());
 	if (_blurRadius.width == 0 && _blurRadius.height == 0)
 	{
 		setTexture(_initialTexture);
