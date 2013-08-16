@@ -224,7 +224,6 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			CCPoint pt = CCPointMake(0 - (0 - (element->pivotPoint.x / sprite->getContentSize().width)),
 									 0 + (1 - (element->pivotPoint.y / sprite->getContentSize().height)));
             sprite->setAnchorPoint(pt);
-			sprite->setUseExternalTransform(true);
 			
 			if (element->scale != 1.0f)
 			{
@@ -265,15 +264,11 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			{
 				GAFStencilMaskSprite *mask = new GAFStencilMaskSprite();
 				mask->initWithSpriteFrame(spriteFrame);
-				mask->objectId = pElement->getStrKey();
-				//mask->atlasElementId = atlasElementId->getCString();
-				
+				mask->objectId = pElement->getStrKey();				
 				CCPoint pt = CCPointMake(0 - (0 - (element->pivotPoint.x / mask->getContentSize().width)),
 										 0 + (1 - (element->pivotPoint.y / mask->getContentSize().height)));
 				
-				mask->setAnchorPoint(pt);
-				mask->setUseExternalTransform(true);
-				
+				mask->setAnchorPoint(pt);				
 				if (element->scale != 1.0f)
 				{
 					mask->setAtlasScale(1.0f / element->scale);
@@ -328,7 +323,7 @@ void GAFAnimatedObject::setSubobjectsVisible(bool visible)
 	CCDictElement* pElement = NULL;
     CCDICT_FOREACH(_subObjects, pElement)
     {
-        GAFSprite* sprite = (GAFSprite*)pElement->getObject();
+        CCSprite* sprite = (CCSprite*)pElement->getObject();
 		sprite->setVisible(visible);
     }
 }
@@ -485,7 +480,11 @@ void GAFAnimatedObject::processAnimation()
 					
 					if (blurFilter)
 					{
-						subObject->setBlurRadius(CCSizeMake(blurFilter->blurX / 4, blurFilter->blurY / 4));
+						subObject->setBlurRadius(CCSizeMake(blurFilter->blurSize.width / 4, blurFilter->blurSize.height / 4));
+					}
+					else
+					{
+						subObject->setBlurRadius(CCSizeZero);
 					}
 				
 					CCSize newCS = subObject->getContentSize();
@@ -532,7 +531,8 @@ void GAFAnimatedObject::processAnimation()
 						float csf = _asset->usedAtlasContentScaleFactor();
 						stateTransform.tx *= csf;
 						stateTransform.ty *= csf;
-						subObject->setExternaTransform( GAF_CGAffineTransformCocosFormatFromFlashFormat(state->affineTransform));
+						CCAffineTransform t = GAF_CGAffineTransformCocosFormatFromFlashFormat(state->affineTransform);
+						subObject->setExternaTransform(t);
 						if (subObject->getZOrder() != state->zIndex)
 						{
 							subObject->setZOrder(state->zIndex);
@@ -543,13 +543,11 @@ void GAFAnimatedObject::processAnimation()
 					}
 				}
 				else
-				{
-					CCDictionary * aMasks = masks();
-					
+				{										
 					GAFSprite * mask = NULL;
-					if (aMasks)
+					if (_masks)
 					{
-						mask = (GAFSprite *)aMasks->objectForKey(state->objectId);
+						mask = (GAFSprite *)_masks->objectForKey(state->objectId);
 					}
 					if (mask)
 					{

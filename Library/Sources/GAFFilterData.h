@@ -16,15 +16,9 @@ class GAFFilterData : public CCObject
 class GAFBlurFilterData : public GAFFilterData
 {
 public:
-	int blurX;
-	int blurY;
+	static GAFBlurFilterData * create(float _blurX, float _blurY);
 	
-	static GAFBlurFilterData * create(int _blurX, int _blurY);
-	
-	inline CCSize blurSize() const
-	{
-		return CCSizeMake(blurX, blurY);
-	}
+	CCSize blurSize;
 protected:
 	GAFBlurFilterData();
 };

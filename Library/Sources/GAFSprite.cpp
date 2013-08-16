@@ -9,10 +9,12 @@
 #else
 #define RENDER_IN_SUBPIXEL(__A__) ( (int)(__A__))
 #endif
+#include "GAFSpriteWithAlpha.h"
+#include "shaders/CCShaderCache.h"
+#include "sprite_nodes/CCSpriteBatchNode.h"
 
 GAFSprite::GAFSprite()
 :
-_useExternalTransform(false),
 _useSeparateBlendFunc(false),
 _isLocator(false),
 _blendEquation(-1),
@@ -28,7 +30,6 @@ void GAFSprite::setExternaTransform(const CCAffineTransform& transform)
 	if (!CCAffineTransformEqualToTransform(_externalTransform, transform))
 	{
 		_externalTransform = transform;
-		_useExternalTransform = true;
 		m_bTransformDirty = true;
 		m_bInverseDirty = true;
 	}
@@ -46,129 +47,26 @@ void GAFSprite::setAtlasScale(float scale)
 
 CCAffineTransform GAFSprite::nodeToParentTransform(void)
 {
-	if (_useExternalTransform)
+	if (m_bTransformDirty)
 	{
-		if (m_bTransformDirty)
+		CCAffineTransform t = _externalTransform;
+		if (_atlasScale != 1.0f)
 		{
-			CCAffineTransform t = _externalTransform;
-			if (_atlasScale != 1.0f)
-			{
-				t = CCAffineTransformScale(t, _atlasScale, _atlasScale);
-			}
-			m_sTransform = CCAffineTransformTranslate(t, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
-			m_bTransformDirty = false;
+			t = CCAffineTransformScale(t, _atlasScale, _atlasScale);
 		}
-		return m_sTransform;		
+		m_sTransform = CCAffineTransformTranslate(t, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
+		m_bTransformDirty = false;
 	}
-	else
-	{
-		return CCSprite::nodeToParentTransform();
-	}
-}
-
-void GAFSprite::updateTransform(void)
-{
-	CCAssert( m_pobBatchNode, "updateTransform is only valid when CCSprite is being rendered using an CCSpriteBatchNode");
-		
-    // recalculate matrix only if it is dirty
-    if( isDirty() ) {
-		
-        // If it is not visible, or one of its ancestors is not visible, then do nothing:
-        if( !m_bVisible || ( m_pParent && m_pParent != (CCSprite*)m_pobBatchNode && ((CCSprite*)m_pParent)->m_bShouldBeHidden) )
-        {
-            m_sQuad.br.vertices = m_sQuad.tl.vertices = m_sQuad.tr.vertices = m_sQuad.bl.vertices = vertex3(0,0,0);
-            m_bShouldBeHidden = true;
-        }
-        else
-        {
-            m_bShouldBeHidden = false;
-			
-            if( ! m_pParent || m_pParent == (CCSprite*)m_pobBatchNode )
-            {
-                m_transformToBatch = nodeToParentTransform();
-            }
-            else
-            {
-                CCAssert( dynamic_cast<CCSprite*>(m_pParent), "Logic error in CCSprite. Parent must be a CCSprite");
-                m_transformToBatch = CCAffineTransformConcat( nodeToParentTransform() , ((CCSprite*)m_pParent)->m_transformToBatch );
-            }
-			
-            //
-            // calculate the Quad based on the Affine Matrix
-            //
-			
-            CCSize size = m_obRect.size;
-			
-			// x1, x2, y1, y2 are changed (comapring to CCSprite) to place Sprite at center
-            float x1 = m_obOffsetPosition.x - size.width / 2;
-            float y1 = m_obOffsetPosition.y - size.height / 2;
-			
-            float x2 = x1 + size.width;
-            float y2 = y1 + size.height;
-            float x = m_transformToBatch.tx;
-            float y = m_transformToBatch.ty;
-			
-            float cr = m_transformToBatch.a;
-            float sr = m_transformToBatch.b;
-            float cr2 = m_transformToBatch.d;
-            float sr2 = -m_transformToBatch.c;
-            float ax = x1 * cr - y1 * sr2 + x;
-            float ay = x1 * sr + y1 * cr2 + y;
-			
-            float bx = x2 * cr - y1 * sr2 + x;
-            float by = x2 * sr + y1 * cr2 + y;
-			
-            float cx = x2 * cr - y2 * sr2 + x;
-            float cy = x2 * sr + y2 * cr2 + y;
-			
-            float dx = x1 * cr - y2 * sr2 + x;
-            float dy = x1 * sr + y2 * cr2 + y;
-			
-            m_sQuad.bl.vertices = vertex3( RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), m_fVertexZ );
-            m_sQuad.br.vertices = vertex3( RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), m_fVertexZ );
-            m_sQuad.tl.vertices = vertex3( RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), m_fVertexZ );
-            m_sQuad.tr.vertices = vertex3( RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), m_fVertexZ );
-        }
-		
-        // MARMALADE CHANGE: ADDED CHECK FOR NULL, TO PERMIT SPRITES WITH NO BATCH NODE / TEXTURE ATLAS
-        if (m_pobTextureAtlas)
-		{
-            m_pobTextureAtlas->updateQuad(&m_sQuad, m_uAtlasIndex);
-        }
-		
-        m_bRecursiveDirty = false;
-        setDirty(false);
-    }
-	
-    // MARMALADE CHANGED
-    // recursively iterate over children
-	/*    if( m_bHasChildren )
-	 {
-	 // MARMALADE: CHANGED TO USE CCNode*
-	 // NOTE THAT WE HAVE ALSO DEFINED virtual CCNode::updateTransform()
-	 arrayMakeObjectsPerformSelector(m_pChildren, updateTransform, CCSprite*);
-	 }*/
-    CCNode::updateTransform();
-	
-#if CC_SPRITE_DEBUG_DRAW
-    // draw bounding box
-    CCPoint vertices[4] = {
-        ccp( m_sQuad.bl.vertices.x, m_sQuad.bl.vertices.y ),
-        ccp( m_sQuad.br.vertices.x, m_sQuad.br.vertices.y ),
-        ccp( m_sQuad.tr.vertices.x, m_sQuad.tr.vertices.y ),
-        ccp( m_sQuad.tl.vertices.x, m_sQuad.tl.vertices.y ),
-    };
-    ccDrawPoly(vertices, 4, true);
-#endif // CC_SPRITE_DEBUG_DRAW
+	return m_sTransform;		
 }
 
 void GAFSprite::draw(void)
 {
-	assert(_useExternalTransform);
 	if (_isLocator)
 	{
 		return;
 	}
+	
     CC_PROFILER_START_CATEGORY(kCCProfilerCategorySprite, "GAFSprite - draw");
 	
     CCAssert(!m_pobBatchNode, "If CCSprite is being rendered by CCSpriteBatchNode, CCSprite#draw SHOULD NOT be called");
@@ -225,7 +123,7 @@ void GAFSprite::draw(void)
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
     CHECK_GL_ERROR_DEBUG();	
-	
+
     CC_INCREMENT_GL_DRAWS(1);
 	
     CC_PROFILER_STOP_CATEGORY(kCCProfilerCategorySprite, "GAFSprite - draw");
@@ -236,13 +134,36 @@ void GAFSprite::invalidateTransformCache()
 	m_bTransformDirty = true;
 }
 
-void GAFSprite::setUseExternalTransform(bool use)
-{
-	_useExternalTransform = use;
-}
-
-
 void GAFSprite::setUniformsForFragmentShader()
 {
 	
+}
+
+bool GAFSprite::initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated)
+{
+	if (CCSprite::initWithTexture(pTexture, rect, rotated))
+	{
+		setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void GAFSprite::setTexture(CCTexture2D *texture)
+{
+    // If batchnode, then texture id should be the same
+    CCAssert(! m_pobBatchNode || texture->getName() == m_pobBatchNode->getTexture()->getName(), "CCSprite: Batched sprites should use the same texture as the batchnode");
+    // accept texture==nil as argument
+    CCAssert( !texture || dynamic_cast<CCTexture2D*>(texture), "setTexture expects a CCTexture2D. Invalid argument");
+    
+    if (!m_pobBatchNode && m_pobTexture != texture)
+    {
+        CC_SAFE_RETAIN(texture);
+        CC_SAFE_RELEASE(m_pobTexture);
+        m_pobTexture = texture;
+        updateBlendFunc();
+    }
 }

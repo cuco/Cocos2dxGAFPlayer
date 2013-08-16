@@ -28,18 +28,11 @@ public:
 	GAFSprite();
 	void setExternaTransform(const CCAffineTransform& transform);
 	void setChildTransform(const CCAffineTransform& transform);
-    virtual CCAffineTransform nodeToParentTransform(void);
+    //virtual CCAffineTransform nodeToParentTransform(void);
 	std::string objectId;
-	virtual void updateTransform(void);
 	virtual void draw();
 	virtual void setUniformsForFragmentShader();
-	void setUseExternalTransform(bool use);
-	void setUseChildTransform(bool use);
-	
-	inline bool isUseExternalTransform() const
-	{
-		return _useExternalTransform;
-	}
+
 	inline const CCAffineTransform &childTransform() const
 	{
 		return _childTransform;
@@ -53,13 +46,15 @@ public:
 		_isLocator = locator;
 	}
 	void setAtlasScale(float scale);
+	CCAffineTransform nodeToParentTransform(void);
+	void setTexture(CCTexture2D *texture);
+	bool initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool rotated);
 protected:
 	CCAffineTransform _externalTransform;
 	CCAffineTransform _childTransform;
 	void invalidateTransformCache();
 private:
 	gafBlendFuncSeparate _blendFuncSeparate;
-	bool _useExternalTransform;
 	bool _useSeparateBlendFunc;
 	bool _isLocator;
 	GLint _blendEquation;

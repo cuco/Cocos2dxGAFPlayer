@@ -13,7 +13,6 @@
 #include "GafFeatures.h"
 #include <vector>
 #include <string>
-#include "GAFShaderManager.h"
 
 static int const kGlobalFPS = 30.0;
 USING_NS_CC;
@@ -62,7 +61,6 @@ void AppDelegate::applicationDidEnterBackground()
     CCDirector::sharedDirector()->stopAnimation();
     SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
     SimpleAudioEngine::sharedEngine()->pauseAllEffects();
-	GAFShaderManager::handleEnterBackground();
 }
 
 

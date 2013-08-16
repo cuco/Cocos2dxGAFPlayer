@@ -7,6 +7,8 @@
 #include "shaders/CCShaderCache.h"
 #include "shaders/ccShaders.h"
 
+#include "GAFSpriteWithAlpha.h"
+
 static const char * kAlphaFragmentShaderFilename = "Shaders/pcShader_PositionTextureAlpha_frag.fs";
 static GLuint _colorTrasformLocation = 0;
 
@@ -26,6 +28,7 @@ bool GAFSpriteWithAlpha::initWithTexture(CCTexture2D *pTexture, const CCRect& re
 {
 	if (GAFSprite::initWithTexture(pTexture, rect, rotated))
 	{
+		
 		_initialTexture = pTexture;
 		_initialTexture->retain();
 		_initialTextureRect = rect;
@@ -88,7 +91,7 @@ void GAFSpriteWithAlpha::setBlurRadius(const CCSize& blurRadius)
 
 void GAFSpriteWithAlpha::updateTextureWithEffects()
 {
-	if (_blurRadius.width == 0 && _blurRadius.height == 0)
+	if (0 == _blurRadius.width && 0 == _blurRadius.height)
 	{
 		setTexture(_initialTexture);
 		setTextureRect(_initialTextureRect, false, _initialTextureRect.size);
@@ -104,7 +107,7 @@ void GAFSpriteWithAlpha::updateTextureWithEffects()
 			setFlipY(true);
 			CCRect texureRect = CCRectMake(0, 0, resultTex->getSprite()->getContentSize().width, resultTex->getSprite()->getContentSize().height);
 			setTextureRect(texureRect, false, texureRect.size);
-		}		
+		}	
 	}
 }
 
@@ -140,8 +143,6 @@ void GAFSpriteWithAlpha::_setBlendingFunc()
 	bf.dst = GL_ONE_MINUS_SRC_ALPHA;
 	setBlendFunc(bf);
 }
-
-
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
 void _GAFreloadAlphaShader()

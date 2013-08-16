@@ -1,12 +1,12 @@
 #include "GAFFilterData.h"
 
-GAFBlurFilterData * GAFBlurFilterData::create(int bX, int bY)
+GAFBlurFilterData * GAFBlurFilterData::create(float bX, float bY)
 {
 	GAFBlurFilterData * ret = new GAFBlurFilterData();
 	if (ret)
 	{
-		ret->blurX = bX;
-		ret->blurY = bY;
+		ret->blurSize.width = bX;
+		ret->blurSize.height = bY;
 		ret->autorelease();
 		return ret;
 	}
