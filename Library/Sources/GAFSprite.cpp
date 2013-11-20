@@ -1,7 +1,4 @@
- #define protected public
 #include "sprite_nodes/CCSprite.h"
-#undef protected
-
 #include "GAFSprite.h"
 
 #if CC_SPRITEBATCHNODE_RENDER_SUBPIXEL

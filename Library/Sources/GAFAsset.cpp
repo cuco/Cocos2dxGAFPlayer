@@ -267,6 +267,8 @@ bool GAFAsset::initWithImageData(const std::string& jsonPath)
 	{
 		loadAnimationSequences(animationSequences);
 	}
+
+	configDictionary->removeAllObjects();  //free memory
 	return true;
 }
 

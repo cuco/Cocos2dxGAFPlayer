@@ -45,6 +45,7 @@ void CCJSONConverter::convertJsonToDictionary(cJSON *json, CCDictionary *diction
     while (j) {
         CCObject * obj = getJsonObj(j);
         dictionary->setObject(obj, j->string);
+		obj->release();
         j = j->next;
     }
 }
@@ -67,6 +68,7 @@ void CCJSONConverter::convertJsonToArray(cJSON * json, CCArray * array)
         cJSON * jsonItem = cJSON_GetArrayItem(json, i);
         CCObject * objItem = getJsonObj(jsonItem);
         array->addObject(objItem);
+		objItem->release();
     }
 }
 
@@ -115,44 +117,46 @@ cJSON * CCJSONConverter::getObjJson(CCObject * obj)
     return NULL;
 }
 
+//NOTE: because of memory issues on windows phone, here we dont use 'autorelease'
+//so caller need to release result object!
 CCObject * CCJSONConverter::getJsonObj(cJSON * json)
 {
     switch (json->type) {
         case cJSON_Object:
         {
-            CCDictionary * dictionary = CCDictionary::create();
+            CCDictionary * dictionary = new CCDictionary();
             convertJsonToDictionary(json, dictionary);
             return dictionary;
         }
         case cJSON_Array:
         {
-            CCArray * array = CCArray::create();
+            CCArray * array = new CCArray();
             convertJsonToArray(json, array);
             return array;
         }
         case cJSON_String:
         {
-            CCString * string = CCString::create(json->valuestring);
+            CCString * string = new CCString(json->valuestring);
             return string;
         }
         case cJSON_Number:
         {
-            CCNumber * number = CCNumber::create(json->valuedouble);
+            CCNumber * number = new CCNumber(json->valuedouble);
             return number;
         }
         case cJSON_True:
         {
-            CCBool * boolean = CCBool::create(true);
+            CCBool * boolean = new CCBool(true);
             return boolean;
         }
         case cJSON_False:
         {
-            CCBool * boolean = CCBool::create(false);
+            CCBool * boolean = new CCBool(false);
             return boolean;
         }
         case cJSON_NULL:
         {
-            CCNull * null = CCNull::create();
+            CCNull * null = new CCNull();
             return null;
         }
         default:

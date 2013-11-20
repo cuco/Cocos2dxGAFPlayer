@@ -46,7 +46,8 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 	{
 		CCSprite *sprite = CCSprite::createWithTexture(aTexture, rect);
         sprite->setPosition(CCPointMake(rTextureSize.width / 2, rTextureSize.height / 2));
-        sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ZERO });
+		ccBlendFunc blend = { GL_ONE, GL_ZERO };
+        sprite->setBlendFunc(blend);
         
         rTexture2->beginWithClear(0, 0, 0, 0);
 		sprite->visit();
@@ -63,7 +64,8 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 		shader->use();
         glUniform1f(texelWidthOffset, texelWidthValue);
         glUniform1f(texelHeightOffset, texelHeightValue);        
-        rTexture2->getSprite()->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ZERO });
+		ccBlendFunc blend = { GL_ONE, GL_ZERO };
+		rTexture2->getSprite()->setBlendFunc(blend);
         rTexture1->beginWithClear(0, 0, 0, 0);
 		rTexture2->getSprite()->visit();
 		rTexture1->end();
@@ -80,7 +82,8 @@ CCRenderTexture * GAFTextureEffectsConverter::gaussianBlurredTextureFromTexture(
 		shader->use();
         glUniform1f(texelWidthOffset, texelWidthValue);
         glUniform1f(texelHeightOffset, texelHeightValue);
-        rTexture1->getSprite()->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ZERO });
+		ccBlendFunc blend = { GL_ONE, GL_ZERO };
+		rTexture1->getSprite()->setBlendFunc(blend);
         rTexture2->beginWithClear(0, 0, 0, 0);
 		rTexture1->getSprite()->visit();
 		rTexture2->end();
@@ -94,6 +97,24 @@ CCGLProgram * GAFTextureEffectsConverter::programForBlurShaderWithName(const cha
 	CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey(aShaderName);
 	if (!program)
 	{
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WP8 || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT && !defined(_DEBUG))
+		#include "ShadersPrecompiled/GAFPrecompiledShaders.h"
+
+		if (std::string(aShaderName) != "GaussianBlur") //make only for GaussianBlur
+		{
+			CCAssert(false, "");
+			return NULL;
+		}
+
+		program = new CCGLProgram();
+		program->autorelease();
+		program->initWithPrecompiledProgramByteArray((const GLchar*)GaussianBlur, sizeof(GaussianBlur));
+		program->addAttribute("position", kCCVertexAttrib_Position);
+		program->addAttribute("inputTextureCoordinate", kCCVertexAttrib_TexCoords);
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+		CCShaderCache::sharedShaderCache()->addProgram(program, aShaderName);
+#else
 		program = new CCGLProgram();
 		program->initWithVertexShaderFilename(aVertexShaderFile, aFragmentShaderFile);
 		if (program)
@@ -110,6 +131,7 @@ CCGLProgram * GAFTextureEffectsConverter::programForBlurShaderWithName(const cha
 			CCLOGWARN("Cannot load program for %s.", aShaderName);
 			return NULL;
 		}
+#endif
 	}
 	return program;
 }

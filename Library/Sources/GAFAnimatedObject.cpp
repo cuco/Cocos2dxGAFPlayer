@@ -18,6 +18,11 @@
 #include "support/CCPointExtension.h"
 
 
+#ifdef max
+	#undef max
+#endif
+
+
 static const char * kGAFBlurFilterName = "Fblur";
 static float const kAnimationFPS = 30.0;   // we keep this number 'almost' synchronized with web. The reason it's
 // not 31 fps is that we will have some animation artifacts when running
@@ -228,8 +233,9 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 			{
 				sprite->setAtlasScale(1.0f / element->scale);
 			}
-			
-			sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ONE_MINUS_SRC_ALPHA });            
+			// visual studio compile fix
+			ccBlendFunc blend = { GL_ONE, GL_ONE_MINUS_SRC_ALPHA };
+			sprite->setBlendFunc(blend);   
 			_subObjects->setObject(sprite, pElement->getStrKey());
 			sprite->release();
         }

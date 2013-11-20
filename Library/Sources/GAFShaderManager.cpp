@@ -42,8 +42,14 @@ CCGLProgram * GAFShaderManager::createWithFragmentFilename(const char * vertexSo
 	
 	if (!res->initWithVertexShaderByteArray(vertexSource, (const char *)data.ptr))
 	{
-		delete res;
+		CC_SAFE_RELEASE(res);
 		return NULL;
 	}
+
+	if (!p)
+	{
+		res->autorelease();
+	}
+	
 	return res;
 }

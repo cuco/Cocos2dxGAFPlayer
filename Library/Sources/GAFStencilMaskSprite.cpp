@@ -154,6 +154,19 @@ CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
 	
     if (!program)
     {
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WP8 || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT && !defined(_DEBUG))
+		#include "ShadersPrecompiled/GAFPrecompiledShaders.h"
+		program = new CCGLProgram();
+		program->autorelease();
+		program->initWithPrecompiledProgramByteArray((const GLchar*)kGAFScrollLayerAlphaFilterProgramCacheKey, 
+			sizeof(kGAFScrollLayerAlphaFilterProgramCacheKey));
+		program->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+		program->addAttribute(kCCAttributeNameColor,    kCCVertexAttrib_Color);
+		program->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+		CCShaderCache::sharedShaderCache()->addProgram(program, kGAFStencilMaskAlphaFilterProgramCacheKey);
+#else
         program = GAFShaderManager::createWithFragmentFilename(ccPositionTextureColor_vert, kPCStencilMaskAlphaFilterFragmentShaderFilename);
         if (program)
         {
@@ -164,13 +177,13 @@ CCGLProgram * GAFStencilMaskSprite::programShaderForMask()
 			program->updateUniforms();
             CHECK_GL_ERROR_DEBUG();
 			CCShaderCache::sharedShaderCache()->addProgram(program, kGAFStencilMaskAlphaFilterProgramCacheKey);
-            program->release();
         }
         else
         {
             CCLOGERROR("Cannot load program for programShaderForMask.");
             return NULL;
         }
+#endif
     }
 	
     program->use();

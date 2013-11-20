@@ -53,6 +53,19 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 	CCGLProgram * program = CCShaderCache::sharedShaderCache()->programForKey(kGAFSpriteWithAlphaShaderProgramCacheKey);
 	if (!program)
 	{
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WP8 || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT && !defined(_DEBUG))
+		#include "ShadersPrecompiled/GAFPrecompiledShaders.h"
+		program = new CCGLProgram();
+		program->autorelease();
+		program->initWithPrecompiledProgramByteArray((const GLchar*)kGAFSpriteWithAlphaShaderProgramCache, 
+			sizeof(kGAFSpriteWithAlphaShaderProgramCache));
+		program->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+		program->addAttribute(kCCAttributeNameColor,    kCCVertexAttrib_Color);
+		program->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+		program->updateUniforms();
+		CHECK_GL_ERROR_DEBUG();
+		CCShaderCache::sharedShaderCache()->addProgram(program, kGAFSpriteWithAlphaShaderProgramCacheKey);
+#else
 		program = GAFShaderManager::createWithFragmentFilename(ccPositionTextureColor_vert, kAlphaFragmentShaderFilename);
 		if (program)
 		{
@@ -70,6 +83,7 @@ CCGLProgram * GAFSpriteWithAlpha::programForShader()
 			CC_SAFE_DELETE(program);
 			return NULL;
 		}
+#endif
 	}
 	program->use();
 	_colorTrasformLocation = (GLuint)glGetUniformLocation(program->getProgram(), "colorTransform");
