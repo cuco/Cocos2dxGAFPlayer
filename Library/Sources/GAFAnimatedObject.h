@@ -90,7 +90,6 @@ protected:
 	GAFSprite * subObjectForInnerObjectId(const char * anInnerObjectId);
 	std::string objectIdByObjectName(const char * aName);
 
-	CCDictionary * masksAssociationStructureFromAnimationObjectIds(CCArray * anAnimationObjectIds, CCArray * anAnimationFrames, CCArray **aMaskedObjectIds);
 private:
 	GAFAsset * _asset;
 	CCDictionary   * _subObjects;

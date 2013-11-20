@@ -189,7 +189,6 @@ std::string GAFAnimatedObject::objectIdByObjectName(const char * name)
 void GAFAnimatedObject::addSubObjectsUsingAnimationObjectsDictionary(CCDictionary * anAnimationObjects,
 CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 {
-    CCArray * maskedObjectIds = NULL;
 	CCDictElement* pElement = NULL;
     CCDICT_FOREACH(anAnimationObjects, pElement)
     {
@@ -230,15 +229,8 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 				sprite->setAtlasScale(1.0f / element->scale);
 			}
 			
-			sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ONE_MINUS_SRC_ALPHA });
-            
-            // Add to hierarchy
+			sprite->setBlendFunc((ccBlendFunc){ GL_ONE, GL_ONE_MINUS_SRC_ALPHA });            
 			_subObjects->setObject(sprite, pElement->getStrKey());
-            // Check if the object is masked (don't add it to visual hierarchy then)
-            //if (!util_ccarray_contains_string(maskedObjectIds, pElement->getStrKey()))
-           // {
-			//	addChild(sprite);
-            //}
 			sprite->release();
         }
         else
@@ -273,7 +265,6 @@ CCDictionary * anAnimationMasks, CCArray * anAnimationFrames)
 				{
 					mask->setAtlasScale(1.0f / element->scale);
 				}
-				
 				_masks->setObject(mask, pElement->getStrKey());
 				addChild(mask);
 				mask->release();
@@ -455,8 +446,7 @@ void GAFAnimatedObject::processAnimation()
 	{
 		int n = arr->count();
 		for (int i = 0; i < n; ++i)
-		{
-			
+		{			
 			GAFSubobjectState *state = (GAFSubobjectState*)arr->objectAtIndex(i);
 			{
 				CCDictionary * subobjects = subObjects();
