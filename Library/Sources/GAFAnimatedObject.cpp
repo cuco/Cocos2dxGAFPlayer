@@ -595,4 +595,36 @@ void GAFAnimatedObject::setControlDelegate(GAFAnimatedObjectControlDelegate * de
 }
 
 
+static CCRect GAFCCRectUnion(const CCRect& src1, const CCRect& src2)
+{
+    CCRect result;
+    
+    float x1 = MIN(src1.getMinX(), src2.getMinX());
+    float y1 = MIN(src1.getMinY(), src2.getMinY());
+    float x2 = MAX(src1.getMaxX(), src2.getMaxX());
+    float y2 = MAX(src1.getMaxY(), src2.getMaxY());
+    
+    result.origin=ccp(x1,x2);
+    result.size=CCSizeMake(x2-x1, y2-y1);
+    return result;
+}
+
+CCRect GAFAnimatedObject::realBoundingBoxForCurrentFrame()
+{
+
+	CCRect result = CCRectZero;
+	
+	CCDictElement* pElement = NULL;
+    CCDICT_FOREACH(_subObjects, pElement)
+    {
+        GAFSprite* anim = (GAFSprite*)pElement->getObject();
+		if (anim->isVisible())
+		{
+			CCRect bb = anim->boundingBox();
+			result = GAFCCRectUnion(result, bb);
+		}		
+    }	
+	return CCRectApplyAffineTransform(result, nodeToParentTransform());
+}
+
 

@@ -85,6 +85,7 @@ public:
 	
 	void setFramePlayedDelegate(GAFFramePlayedDelegate * delegate);
 	void setControlDelegate(GAFAnimatedObjectControlDelegate * delegate);
+	CCRect realBoundingBoxForCurrentFrame();
 protected:
 	GAFAnimatedObject();
 	GAFSprite * subObjectForInnerObjectId(const char * anInnerObjectId);
