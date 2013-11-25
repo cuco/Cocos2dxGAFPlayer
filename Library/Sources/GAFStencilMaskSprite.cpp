@@ -97,8 +97,8 @@ void GAFStencilMaskSprite::draw()
     glClear(GL_STENCIL_BUFFER_BIT);
     
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-    glStencilFunc(GL_NEVER, 1, 1);
-    glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 1);
     
     // Draw mask
 	GAFSprite::draw();

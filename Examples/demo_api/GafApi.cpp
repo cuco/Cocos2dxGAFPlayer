@@ -7,8 +7,8 @@
 using namespace cocos2d;
 using namespace CocosDenshion;
 
-static const char * kAnimationPath          = "SampleAnimations/enemy_slime/export_enemy_slime.json";
-static const char * kNamedAnimationPath     = "SampleAnimations/named/named.json";
+static const char * kAnimationPath          = "SampleAnimations/4/4.json";
+static const char * kNamedAnimationPath     = "SampleAnimations/4/5.json";
 
 GafApi::GafApi()
 :

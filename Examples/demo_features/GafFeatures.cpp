@@ -126,27 +126,10 @@ bool GafFeatures::init()
     addChild(pMenu, 10000);
 	_anim_index = 0;
 	
-	_jsons.push_back("SampleAnimations/critter_hit/supergem_vfx_all.json");	
-	_jsons.push_back("SampleAnimations/critter_hit/critter_hit.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_dig01_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_dig02_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_dig03_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_dig_move.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_growing_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_static01_idle.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_static02_idle.json");
-	_jsons.push_back("SampleAnimations/critter_hit/dirt_static03_idle.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_blue_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_green_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_purple_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_red_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_vanish.json");
-	_jsons.push_back("SampleAnimations/critter_hit/gem_yellow_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/piece_item.json");
-	_jsons.push_back("SampleAnimations/critter_hit/skull_moving_all.json");
-	_jsons.push_back("SampleAnimations/critter_hit/skull_static_all.json");
-
-	
+	_jsons.push_back("SampleAnimations/1/1.json");
+	_jsons.push_back("SampleAnimations/2/2.json");
+	_jsons.push_back("SampleAnimations/3/3.json");	
+	_jsons.push_back("SampleAnimations/4/4.json");
 	addObjectsToScene(1);
 	black();
 	
